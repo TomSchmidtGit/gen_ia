@@ -30,16 +30,15 @@ st.markdown("""
 # Chargement du modèle (cela peut prendre un peu de temps la première fois)
 @st.cache_resource
 def load_model():
-    model_id = "runwayml/stable-diffusion-v1-5"  # Nom correct du modèle
+    model_id = "runwayml/stable-diffusion-v1-5"
     try:
         pipe = StableDiffusionPipeline.from_pretrained(
-            model_id, 
-            torch_dtype=torch.float16,
-            variant="fp16",
-            use_auth_token=True  # Permet l'utilisation de ton Token Hugging Face
+            model_id,
+            torch_dtype=torch.float32,
+            use_auth_token=True
         )
-        device = "mps" if torch.backends.mps.is_available() else "cpu"
-        pipe.to(device)
+        pipe.to("cpu")
+        pipe.enable_attention_slicing()
         return pipe
     except Exception as e:
         st.error(f"❌ Erreur lors du chargement du modèle : {e}")
@@ -75,6 +74,6 @@ if st.button("🎨 Générer l'image"):
                 image = pipe(prompt, guidance_scale=guidance_scale, num_inference_steps=num_inference_steps).images[0]
 
                 # 📌 Affichage de l'image générée
-                st.image(image, caption="✅ Image générée avec succès", use_container_width=True)
+                st.image(image, caption="✅ Image générée avec succès", width=500)
             except Exception as e:
                 st.error(f"❌ Erreur lors de la génération : {e}")
